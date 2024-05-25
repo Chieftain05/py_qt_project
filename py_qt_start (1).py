@@ -64,40 +64,74 @@ notes_win.setLayout(layout_notes)
 # Зберегти нотатки в json
 def save_notes_to_json():
     with open("notes_data.json", "w") as file:
-        json.dump(notes, file, ident=4, ensure_ascii=False, sort_keys=True)
-def save_notes_to_json():
+        json.dump(notes, file, indent=4, ensure_ascii=False, sort_keys=True)
+        
+def load_notes_from_json():
     try:
-        with open("notes_data_json", "r") as file:
+        with open("notes_data_json", "w") as file:
             notes.extend(json.load(file))
     except FileExistsError:
         pass
 
-# Старт застосунку
-notes_win.show()
 
-def show_note:
+def show_note():
     key = list_notes.selectedItems()[0].text()
     for note in notes:
         field_text.setText(note["content"])
         
-def add note():
+def add_note():
     note_name, ok = QInputDialog.getText(notes_win, "Додати нотатку", "ім'я нотатки: ")
     if ok and note_name != "":
-    note = {
-        "name": note_name,
-        "content": "",
-        "lags": []
-    }
+        note = {
+            "name": note_name,
+            "content": "",
+            "tags": []
+        }
     notes.append(note)
-    list_notes.addItem(note{"name"})
+    list_notes.addItem(note["name"])
     print("Додано нотатку!", note)
     save_notes_to_json()
+
+def save_note():
+    if list_notes.selectedItems():
+        key = list_notes.selectedItems()[0].text()
+        print(key)
+        for note in notes:
+            if note['name'] == key:
+                note['content'] = field_text.toPlainText()
+                save_notes_to_json()
+                print("Нотатка збережена:", note)
+                break
+    else:
+        print("Необрано нотатки для зберігання")
+    
+def del_note():
+    if list_notes.selectedItems():
+        key = list_notes.selectedItems()[0].text()
+        for note in notes:
+            if note['name'] == key:
+                print(note['name'] + ' ' + key)
+                notes.remove(note)
+                list_notes.takeItem(list_notes.row(list_notes.selectedItems()[0]))
+                print("Нотатка видалена:", note)
+                save_notes_to_json()
+                break
+    else:
+        print("Необрано нотатки для видалення")
+        
+
+                
+list_notes.itemClicked.connect(show_note)
+button_note_create.clicked.connect(add_note)
+button_note_del.clicked.connect(del_note)
+# Старт застосунку
+notes_win.show()
+
 # Додати всі з json до list_notes для подальшої роботи
 for note in notes:
     list_notes.addItem(note['name'])
 
 app.exec_()
-
 
 
 
