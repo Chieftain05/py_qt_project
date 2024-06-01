@@ -1,5 +1,11 @@
+#для начала скопируй сюда интерфейс "Умных заметок" и проверь его работу
+
+#затем запрограммируй демо-версию функционала
+#для начала скопируй сюда интерфейс "Умных заметок" и проверь его работу
+
+#затем запрограммируй демо-версию функционала
 import json
-from PyQt5.QtCore import Qt 
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QListWidget, QLineEdit, QTextEdit, QInputDialog, \
     QHBoxLayout, QVBoxLayout, QFormLayout
 
@@ -18,7 +24,7 @@ list_notes_label = QLabel('Список нотаток')
 
 button_note_create = QPushButton('Створити нотатку')
 button_note_del = QPushButton('Видалити нотатку')
-button_note_save = QPushButton('Зберегти нотатку')
+button_save = QPushButton('Зберегти нотатку')
 
 field_tag = QLineEdit('')
 field_tag.setPlaceholderText('Ввести тег...')
@@ -41,7 +47,7 @@ row_1 = QHBoxLayout()
 row_1.addWidget(button_note_create)
 row_1.addWidget(button_note_del)
 row_2 = QHBoxLayout()
-row_2.addWidget(button_note_save)
+row_2.addWidget(button_save)
 col_2.addLayout(row_1)
 col_2.addLayout(row_2)
 
@@ -60,42 +66,32 @@ col_2.addLayout(row_4)
 layout_notes.addLayout(col_1, stretch=2)
 layout_notes.addLayout(col_2, stretch=1)
 notes_win.setLayout(layout_notes)
-"Функціональність"
-# Зберегти нотатки в json
+
+# SAVE IN JSON
 def save_notes_to_json():
     with open("notes_data.json", "w") as file:
         json.dump(notes, file, indent=4, ensure_ascii=False, sort_keys=True)
-        
-def load_notes_from_json():
-    try:
-        with open("notes_data_json", "w") as file:
-            notes.extend(json.load(file))
-    except FileExistsError:
-        pass
 
+# upload in json
+def load_notes_from_json():
+    with open("notes_data.json", "w") as file:
+        try:
+            with open("notes_data.json", "w") as file:
+                notes.extend(json.load(file))
+        except FileNotFoundError:
+            pass   
 
 def show_note():
     key = list_notes.selectedItems()[0].text()
     for note in notes:
-        field_text.setText(note["content"])
-        
-def add_note():
-    note_name, ok = QInputDialog.getText(notes_win, "Додати нотатку", "ім'я нотатки: ")
-    if ok and note_name != "":
-        note = {
-            "name": note_name,
-            "content": "",
-            "tags": []
-        }
-    notes.append(note)
-    list_notes.addItem(note["name"])
-    print("Додано нотатку!", note)
-    save_notes_to_json()
+        if note["name"] == key:
+            field_text.setText(note['content'])
+            list_notes.clear()
+            list_notes.addItems(note['tags'])
 
 def save_note():
     if list_notes.selectedItems():
         key = list_notes.selectedItems()[0].text()
-        print(key)
         for note in notes:
             if note['name'] == key:
                 note['content'] = field_text.toPlainText()
@@ -103,27 +99,90 @@ def save_note():
                 print("Нотатка збережена:", note)
                 break
     else:
-        print("Необрано нотатки для зберігання")
-    
+        print("Необрано нотатки для зберігання!")
+
 def del_note():
     if list_notes.selectedItems():
         key = list_notes.selectedItems()[0].text()
         for note in notes:
-            if note['name'] == key:
+            if note['note'] == key:
                 print(note['name'] + ' ' + key)
                 notes.remove(note)
                 list_notes.takeItem(list_notes.row(list_notes.selectedItems()[0]))
-                print("Нотатка видалена:", note)
+                print('Нотатка видалинна:', note)
                 save_notes_to_json()
                 break
     else:
-        print("Необрано нотатки для видалення")
-        
-
+        print("Необрано нотатки для видалення!:")
                 
+def add_note():
+    note_name, ok = QInputDialog.getText(notes_win,"Додати нотатку", "І'мя нотатки:")
+    if ok and note_name != "":
+            note = {
+                'name': note_name,
+                'content': '',
+                'tags': []
+            }
+            notes.append(note)
+            list_notes.addItem(note['name'])
+            print("Додано нотатку:", note)
+            save_notes_to_json()
+
+def add_tag():
+    if list_notes.selectedItems():
+        key = list_notes.selectedItems()[0].text()
+        tag = field_tag.text()
+        for note in notes:
+            if note['name'] == key:
+                if tag not in note['tags']:
+                    note['tags'].append(tag)
+                    list_tags.addItem(tag)
+                    field_tag.clear()
+                    save_notes_to_json()
+                    print('Тег доданний до нотатки:', tag)
+                break
+    else:
+        print('Необрано нотатки для додавання тегу!:')
+
+def del_tag():
+    if list_notes.selectedItems() and list_tags.selectedItems():
+        key_note = list_notes.selectedItems()[0].text()
+        for note in notes:
+            if note['name'] == key_note:
+                note['tags'].remove(list_tags.selectedItems()[0].text())
+                list_tags.takeItem(list_tags.row(list_tags.selectedItems()[0]))
+                save_notes_to_json()
+                print('tag видалено з нотатки')
+    else:
+        print("необрано нотатки для видалення тегу")
+
+def search_tag():
+    tag = field_tag.text()
+    if button_tag_search.text() == 'Шукати нотатки за тегом' and tag:
+        notes_filtered = [note for note in notes if tag in note['tags']]
+        list_notes.clear()
+        list_tags.clear()
+        for note in notes_filtered:
+            list_notes.addItem(note['name'])
+        button_tag_search.text() == ('Скинути пошук')
+    elif button_tag_search.text() == 'Скинути пошук':
+        field_tag.clear()
+        list_notes.clear()
+        list_tags.clear()
+        for note in notes:
+            list_notes.addItem(note['name'])
+        button_tag_search.setText('Шукати нотатки по тегу')
+    else:
+        pass
+
+# обробка подій
 list_notes.itemClicked.connect(show_note)
 button_note_create.clicked.connect(add_note)
+button_save.clicked.connect(save_note)
 button_note_del.clicked.connect(del_note)
+button_tag_add.clicked.connect(add_tag)
+button_tag_del.clicked.connect(del_tag)
+button_tag_search.clicked.connect(search_tag)
 # Старт застосунку
 notes_win.show()
 
@@ -131,12 +190,6 @@ notes_win.show()
 for note in notes:
     list_notes.addItem(note['name'])
 
+
+
 app.exec_()
-
-
-
-
-
-
-
-
