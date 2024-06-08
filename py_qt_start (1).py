@@ -1,9 +1,3 @@
-#для начала скопируй сюда интерфейс "Умных заметок" и проверь его работу
-
-#затем запрограммируй демо-версию функционала
-#для начала скопируй сюда интерфейс "Умных заметок" и проверь его работу
-
-#затем запрограммируй демо-версию функционала
 import json
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QListWidget, QLineEdit, QTextEdit, QInputDialog, \
@@ -74,20 +68,19 @@ def save_notes_to_json():
 
 # upload in json
 def load_notes_from_json():
-    with open("notes_data.json", "w") as file:
-        try:
-            with open("notes_data.json", "w") as file:
-                notes.extend(json.load(file))
-        except FileNotFoundError:
-            pass   
+    try:
+        with open("notes_data.json", "r") as file:
+            notes.extend(json.load(file))
+    except FileNotFoundError:
+        pass   
 
 def show_note():
     key = list_notes.selectedItems()[0].text()
     for note in notes:
         if note["name"] == key:
             field_text.setText(note['content'])
-            list_notes.clear()
-            list_notes.addItems(note['tags'])
+            list_tags.clear()
+            list_tags.addItems(note['tags'])
 
 def save_note():
     if list_notes.selectedItems():
@@ -164,14 +157,14 @@ def search_tag():
         list_tags.clear()
         for note in notes_filtered:
             list_notes.addItem(note['name'])
-        button_tag_search.text() == ('Скинути пошук')
+        button_tag_search.setText('Скинути пошук')
     elif button_tag_search.text() == 'Скинути пошук':
         field_tag.clear()
         list_notes.clear()
         list_tags.clear()
         for note in notes:
             list_notes.addItem(note['name'])
-        button_tag_search.setText('Шукати нотатки по тегу')
+        button_tag_search.setText('Шукати нотатки за тегом')
     else:
         pass
 
@@ -189,7 +182,5 @@ notes_win.show()
 # Додати всі з json до list_notes для подальшої роботи
 for note in notes:
     list_notes.addItem(note['name'])
-
-
 
 app.exec_()
